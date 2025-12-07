@@ -1,31 +1,108 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.35806.103 d17.14
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "лб_7", "лб_7\лб_7.vcxproj", "{160BB50C-F851-4580-9395-6E9E28D99208}"
-EndProject
-Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|x64 = Debug|x64
-		Debug|x86 = Debug|x86
-		Release|x64 = Release|x64
-		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{160BB50C-F851-4580-9395-6E9E28D99208}.Debug|x64.ActiveCfg = Debug|x64
-		{160BB50C-F851-4580-9395-6E9E28D99208}.Debug|x64.Build.0 = Debug|x64
-		{160BB50C-F851-4580-9395-6E9E28D99208}.Debug|x86.ActiveCfg = Debug|Win32
-		{160BB50C-F851-4580-9395-6E9E28D99208}.Debug|x86.Build.0 = Debug|Win32
-		{160BB50C-F851-4580-9395-6E9E28D99208}.Release|x64.ActiveCfg = Release|x64
-		{160BB50C-F851-4580-9395-6E9E28D99208}.Release|x64.Build.0 = Release|x64
-		{160BB50C-F851-4580-9395-6E9E28D99208}.Release|x86.ActiveCfg = Release|Win32
-		{160BB50C-F851-4580-9395-6E9E28D99208}.Release|x86.Build.0 = Release|Win32
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {ECBCF733-2CF1-4883-AE65-6AC0D7C448F7}
-	EndGlobalSection
-EndGlobal
+﻿include <iostream>
+#include <stdexcept>
+#include <windows.h>
+using namespace std;
+
+class EmptyException {};
+
+class PerimeterArgsException {
+public:
+    double a, b, c;
+    PerimeterArgsException(double a, double b, double c)
+        : a(a), b(b), c(c) {
+    }
+};
+
+class PerimeterStdException : public invalid_argument {
+public:
+    double a, b, c;
+    PerimeterStdException(double a, double b, double c)
+        : invalid_argument("Неможливо побудувати трикутник"), a(a), b(b), c(c) {
+    }
+};
+
+double perimeter1(double a, double b, double c)
+{
+    if (a <= 0 || b <= 0 || c <= 0)
+        throw invalid_argument("Сторона має бути більшою за 0");
+
+    return a + b + c;
+}
+
+double perimeter2(double a, double b, double c) throw()
+{
+    if (a <= 0 || b <= 0 || c <= 0)
+        throw EmptyException();
+
+    return a + b + c;
+}
+
+double perimeter3(double a, double b, double c) throw(invalid_argument)
+{
+    if (a <= 0 || b <= 0 || c <= 0)
+        throw invalid_argument("Некоректні сторони трикутника");
+
+    return a + b + c;
+}
+
+double perimeter4(double a, double b, double c) throw(PerimeterArgsException, PerimeterStdException)
+{
+    if (a <= 0 || b <= 0 || c <= 0)
+        throw PerimeterArgsException(a, b, c);
+
+    if (a + b <= c || a + c <= b || b + c <= a)
+        throw PerimeterStdException(a, b, c);
+
+    return a + b + c;
+}
+
+int main()
+{
+    SetConsoleCP(1251);      
+    SetConsoleOutputCP(1251); 
+
+    double a, b, c;
+
+    cout << "Введіть три сторони трикутника: ";
+    cin >> a >> b >> c;
+
+    cout << "\nФункція 1\n";
+    try {
+        cout << "Периметр: " << perimeter1(a, b, c) << endl;
+    }
+    catch (invalid_argument& e) {
+        cout << "Помилка: " << e.what() << endl;
+    }
+
+    cout << "\nФункція 2\n";
+    try {
+        cout << "Периметр: " << perimeter2(a, b, c) << endl;
+    }
+    catch (EmptyException&) {
+        cout << "Помилка: EmptyException – некоректні сторони.\n";
+    }
+
+    cout << "\nФункція 3\n";
+    try {
+        cout << "Периметр: " << perimeter3(a, b, c) << endl;
+    }
+    catch (invalid_argument& e) {
+        cout << "Помилка: " << e.what() << endl;
+    }
+
+    cout << "\nФункція 4\n";
+    try {
+        cout << "Периметр: " << perimeter4(a, b, c) << endl;
+    }
+    catch (PerimeterArgsException& e) {
+        cout << "Помилка: некоректні значення сторін ("
+            << e.a << ", " << e.b << ", " << e.c << ")\n";
+    }
+    catch (PerimeterStdException& e) {
+        cout << "Помилка: " << e.what()
+            << " ("
+            << e.a << ", " << e.b << ", " << e.c << ")\n";
+    }
+
+    return 0;
+}
